@@ -20,8 +20,7 @@ def get_args():
     parser.add_argument("--nms_threshold", type=float, default=0.5)
     parser.add_argument("--pretrained_model", type=str, default="trained_models/signatrix_efficientdet_coco.pth")
     parser.add_argument("--output", type=str, default="predictions")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 
@@ -62,7 +61,10 @@ def test(opt):
                     (xmin, ymin + text_size[1] + 4), cv2.FONT_HERSHEY_PLAIN, 1,
                     (255, 255, 255), 1)
 
-            cv2.imwrite("{}/{}_prediction.jpg".format(opt.output, image_info["file_name"][:-4]), output_image)
+            cv2.imwrite(
+                f'{opt.output}/{image_info["file_name"][:-4]}_prediction.jpg',
+                output_image,
+            )
 
 
 if __name__ == "__main__":

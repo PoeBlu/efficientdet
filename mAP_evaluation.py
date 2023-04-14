@@ -33,7 +33,7 @@ def evaluate_coco(dataset, model, threshold=0.05):
                     image_result = {
                         'image_id': dataset.image_ids[index],
                         'category_id': dataset.label_to_coco_label(label),
-                        'score': float(score),
+                        'score': score,
                         'bbox': box.tolist(),
                     }
 
@@ -43,17 +43,21 @@ def evaluate_coco(dataset, model, threshold=0.05):
             image_ids.append(dataset.image_ids[index])
 
             # print progress
-            print('{}/{}'.format(index, len(dataset)), end='\r')
+            print(f'{index}/{len(dataset)}', end='\r')
 
         if not len(results):
             return
 
         # write output
-        json.dump(results, open('{}_bbox_results.json'.format(dataset.set_name), 'w'), indent=4)
+        json.dump(
+            results,
+            open(f'{dataset.set_name}_bbox_results.json', 'w'),
+            indent=4,
+        )
 
         # load results in COCO evaluation tool
         coco_true = dataset.coco
-        coco_pred = coco_true.loadRes('{}_bbox_results.json'.format(dataset.set_name))
+        coco_pred = coco_true.loadRes(f'{dataset.set_name}_bbox_results.json')
 
         # run COCO evaluation
         coco_eval = COCOeval(coco_true, coco_pred, 'bbox')

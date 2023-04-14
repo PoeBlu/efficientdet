@@ -41,9 +41,9 @@ class BBoxTransform(nn.Module):
         pred_boxes_x2 = pred_ctr_x + 0.5 * pred_w
         pred_boxes_y2 = pred_ctr_y + 0.5 * pred_h
 
-        pred_boxes = torch.stack([pred_boxes_x1, pred_boxes_y1, pred_boxes_x2, pred_boxes_y2], dim=2)
-
-        return pred_boxes
+        return torch.stack(
+            [pred_boxes_x1, pred_boxes_y1, pred_boxes_x2, pred_boxes_y2], dim=2
+        )
 
 
 class ClipBoxes(nn.Module):
@@ -120,8 +120,7 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
 
 def compute_shape(image_shape, pyramid_levels):
     image_shape = np.array(image_shape[:2])
-    image_shapes = [(image_shape + 2 ** x - 1) // (2 ** x) for x in pyramid_levels]
-    return image_shapes
+    return [(image_shape + 2 ** x - 1) // (2 ** x) for x in pyramid_levels]
 
 
 def shift(shape, stride, anchors):

@@ -12,9 +12,7 @@ def calc_iou(a, b):
     ua = torch.unsqueeze((a[:, 2] - a[:, 0]) * (a[:, 3] - a[:, 1]), dim=1) + area - iw * ih
     ua = torch.clamp(ua, min=1e-8)
     intersection = iw * ih
-    IoU = intersection / ua
-
-    return IoU
+    return intersection / ua
 
 
 class FocalLoss(nn.Module):
@@ -96,13 +94,12 @@ class FocalLoss(nn.Module):
 
 
             if positive_indices.sum() > 0:
-                assigned_annotations = assigned_annotations[positive_indices, :]
-
                 anchor_widths_pi = anchor_widths[positive_indices]
                 anchor_heights_pi = anchor_heights[positive_indices]
                 anchor_ctr_x_pi = anchor_ctr_x[positive_indices]
                 anchor_ctr_y_pi = anchor_ctr_y[positive_indices]
 
+                assigned_annotations = assigned_annotations[positive_indices, :]
                 gt_widths = assigned_annotations[:, 2] - assigned_annotations[:, 0]
                 gt_heights = assigned_annotations[:, 3] - assigned_annotations[:, 1]
                 gt_ctr_x = assigned_annotations[:, 0] + 0.5 * gt_widths
@@ -132,11 +129,10 @@ class FocalLoss(nn.Module):
                     regression_diff - 0.5 / 9.0
                 )
                 regression_losses.append(regression_loss.mean())
+            elif torch.cuda.is_available():
+                regression_losses.append(torch.tensor(0).float().cuda())
             else:
-                if torch.cuda.is_available():
-                    regression_losses.append(torch.tensor(0).float().cuda())
-                else:
-                    regression_losses.append(torch.tensor(0).float())
+                regression_losses.append(torch.tensor(0).float())
 
         return torch.stack(classification_losses).mean(dim=0, keepdim=True), torch.stack(regression_losses).mean(dim=0,
                                                                                                                  keepdim=True)

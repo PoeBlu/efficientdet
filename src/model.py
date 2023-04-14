@@ -137,8 +137,18 @@ class Regressor(nn.Module):
         super(Regressor, self).__init__()
         layers = []
         for _ in range(num_layers):
-            layers.append(nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1))
-            layers.append(nn.ReLU(True))
+            layers.extend(
+                (
+                    nn.Conv2d(
+                        in_channels,
+                        in_channels,
+                        kernel_size=3,
+                        stride=1,
+                        padding=1,
+                    ),
+                    nn.ReLU(True),
+                )
+            )
         self.layers = nn.Sequential(*layers)
         self.header = nn.Conv2d(in_channels, num_anchors * 4, kernel_size=3, stride=1, padding=1)
 
@@ -156,8 +166,18 @@ class Classifier(nn.Module):
         self.num_classes = num_classes
         layers = []
         for _ in range(num_layers):
-            layers.append(nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1))
-            layers.append(nn.ReLU(True))
+            layers.extend(
+                (
+                    nn.Conv2d(
+                        in_channels,
+                        in_channels,
+                        kernel_size=3,
+                        stride=1,
+                        padding=1,
+                    ),
+                    nn.ReLU(True),
+                )
+            )
         self.layers = nn.Sequential(*layers)
         self.header = nn.Conv2d(in_channels, num_anchors * num_classes, kernel_size=3, stride=1, padding=1)
         self.act = nn.Sigmoid()
@@ -271,26 +291,25 @@ class EfficientDet(nn.Module):
 
         if is_training:
             return self.focalLoss(classification, regression, anchors, annotations)
-        else:
-            transformed_anchors = self.regressBoxes(anchors, regression)
-            transformed_anchors = self.clipBoxes(transformed_anchors, img_batch)
+        transformed_anchors = self.regressBoxes(anchors, regression)
+        transformed_anchors = self.clipBoxes(transformed_anchors, img_batch)
 
-            scores = torch.max(classification, dim=2, keepdim=True)[0]
+        scores = torch.max(classification, dim=2, keepdim=True)[0]
 
-            scores_over_thresh = (scores > 0.05)[0, :, 0]
+        scores_over_thresh = (scores > 0.05)[0, :, 0]
 
-            if scores_over_thresh.sum() == 0:
-                return [torch.zeros(0), torch.zeros(0), torch.zeros(0, 4)]
+        if scores_over_thresh.sum() == 0:
+            return [torch.zeros(0), torch.zeros(0), torch.zeros(0, 4)]
 
-            classification = classification[:, scores_over_thresh, :]
-            transformed_anchors = transformed_anchors[:, scores_over_thresh, :]
-            scores = scores[:, scores_over_thresh, :]
+        classification = classification[:, scores_over_thresh, :]
+        transformed_anchors = transformed_anchors[:, scores_over_thresh, :]
+        scores = scores[:, scores_over_thresh, :]
 
-            anchors_nms_idx = nms(torch.cat([transformed_anchors, scores], dim=2)[0, :, :], 0.5)
+        anchors_nms_idx = nms(torch.cat([transformed_anchors, scores], dim=2)[0, :, :], 0.5)
 
-            nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
+        nms_scores, nms_class = classification[0, anchors_nms_idx, :].max(dim=1)
 
-            return [nms_scores, nms_class, transformed_anchors[0, anchors_nms_idx, :]]
+        return [nms_scores, nms_class, transformed_anchors[0, anchors_nms_idx, :]]
 
 
 if __name__ == '__main__':

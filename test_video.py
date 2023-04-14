@@ -18,8 +18,7 @@ def get_args():
     parser.add_argument("--input", type=str, default="test_videos/input.mp4")
     parser.add_argument("--output", type=str, default="test_videos/output.mp4")
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def test(opt):

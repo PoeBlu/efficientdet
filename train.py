@@ -30,8 +30,7 @@ def get_args():
     parser.add_argument("--log_path", type=str, default="tensorboard/signatrix_efficientdet_coco")
     parser.add_argument("--saved_path", type=str, default="trained_models")
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def train(opt):
@@ -129,7 +128,7 @@ def train(opt):
             model.eval()
             loss_regression_ls = []
             loss_classification_ls = []
-            for iter, data in enumerate(test_generator):
+            for data in test_generator:
                 with torch.no_grad():
                     if torch.cuda.is_available():
                         cls_loss, reg_loss = model([data['img'].cuda().float(), data['annot'].cuda()])
@@ -179,7 +178,7 @@ def train(opt):
 
             # Early stopping
             if epoch - best_epoch > opt.es_patience > 0:
-                print("Stop training at epoch {}. The lowest loss achieved is {}".format(epoch, loss))
+                print(f"Stop training at epoch {epoch}. The lowest loss achieved is {loss}")
                 break
     writer.close()
 

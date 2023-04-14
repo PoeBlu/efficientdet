@@ -14,7 +14,11 @@ class CocoDataset(Dataset):
         self.set_name = set
         self.transform = transform
 
-        self.coco = COCO(os.path.join(self.root_dir, 'annotations', 'instances_' + self.set_name + '.json'))
+        self.coco = COCO(
+            os.path.join(
+                self.root_dir, 'annotations', f'instances_{self.set_name}.json'
+            )
+        )
         self.image_ids = self.coco.getImgIds()
 
         self.load_classes()
@@ -33,10 +37,7 @@ class CocoDataset(Dataset):
             self.coco_labels_inverse[c['id']] = len(self.classes)
             self.classes[c['name']] = len(self.classes)
 
-        # also load the reverse (label -> name)
-        self.labels = {}
-        for key, value in self.classes.items():
-            self.labels[value] = key
+        self.labels = {value: key for key, value in self.classes.items()}
 
     def __len__(self):
         return len(self.image_ids)
